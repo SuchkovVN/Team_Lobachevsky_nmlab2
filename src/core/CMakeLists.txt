@@ -1,6 +1,6 @@
 set(TARGET_NAME nm_core_lib)
 
-file(GLOB_RECURSE SOURCES "*.cc" "*.hpp")
+file(GLOB_RECURSE SOURCES "*.cc" "*.cpp" "*.hpp")
 
 
 add_library(${TARGET_NAME} STATIC ${SOURCES})
