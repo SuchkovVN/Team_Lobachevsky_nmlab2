@@ -64,7 +64,7 @@ public:
 class NMbalance : public balanceMethod {
     using func = std::function<double(double, double)>;
 
-    std::vector<double[3]> matrix; /* matrix of linear equations system, with C-style layout
+    std::vector<double*> matrix; /* matrix of linear equations system, with C-style layout
                                 (probably tridiagonal so it can looks like this (v11, v12, v13, v21, v22 .. etc)) */
     std::vector<double> rhs;    /* linear system rhs */
 

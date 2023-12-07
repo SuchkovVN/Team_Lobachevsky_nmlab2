@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstddef>
+#include "logger.hpp"
 template <class T, class U>
 void TridiagonalAlg(T coeffs, U x, U rhs, const size_t& n) {
     /* coeffs is an object, which contains a TMA coefficients 
@@ -11,16 +12,19 @@ void TridiagonalAlg(T coeffs, U x, U rhs, const size_t& n) {
        rhs is an object, which represent a vector of linear system right-hand-sides which can 
        be accessed in form rhs[i] (rhs[0] = F1 (?)) */
 
-    double a[2] = {0.l, 0.l};
-    double b[2] = {0.l, 0.l};
+    double temp;
+    for (size_t i = 1; i < n; i++) { 
+        temp = coeffs[i][0] / coeffs[i - 1][1];
+        coeffs[i][1] = coeffs[i][1] - temp * coeffs[i - 1][2];
+        rhs[i] = rhs[i] - temp * rhs[i - 1];
+        LOG_INFO_CLI(i);
+    }
 
+    LOG_INFO_CLI("coeffs done");
+    x[n - 1] = rhs[n - 1] / coeffs[n - 1][1];
 
-    for (size_t i = 0; i < n; i++) {
-        a[1] = -coeffs[i][2] / (coeffs[i][0] * a[0] + coeffs[i][1]);
-        b[1] = (rhs[i] - coeffs[i][0] * b[0]) / (coeffs[i][0] * a[0] + coeffs[i][1]);
-
-        x[i + 1] = (x[i] - b[1]) / a[1]; 
-        a[0] = a[1];
-        b[0] = b[1];
+    for (long long int i = n - 2; i >= 0; i--) {
+        x[i] = (rhs[i] - coeffs[i][2] * x[i + 1]) / coeffs[i][1];
+        LOG_INFO_CLI(i);
     }
 }

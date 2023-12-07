@@ -1,6 +1,8 @@
 #include "diffschemes.hpp"
 
 #include "nmlinalg.hpp"
+#include "logger.hpp"
+#include <cmath>
 #include <cstddef>
 
 void NMbalance::eval() {
@@ -44,9 +46,9 @@ void NMbalance::eval() {
     // coefficient evaluated and wrote in matrix and rhs vars
     // now we need to solve linear system w/ TMA
 
-    vars[0] = _mu1;
-    vars[n] = _mu2;
-    TridiagonalAlg(matrix, vars, rhs, n);
+    TridiagonalAlg(matrix, vars, rhs, n + 1);
+
+    NM_ASSERT((std::abs(vars[0] -_mu1) < 1e-9) && (std::abs(vars[n] - _mu2) < 1e-9), "error while eval: incorrect value");
 
     // actually we need to put solution in some resultTable like object, but for some time it will be more... reasonable
 }
