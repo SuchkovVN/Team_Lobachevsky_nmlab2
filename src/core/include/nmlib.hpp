@@ -76,6 +76,7 @@ typedef std::vector<tableRow> resultTable;  // table for output
 struct config {
     config(double x_min, double x_max, double x_0, double u_0, double du_0, double step, uint N_max, bool LEC, double eps, double A, double B, double C)
         : x_min(x_min), x_max(x_max), x_0(x_0), u_0(u_0), du_0(du_0), step(step), N_max(N_max), LEC(LEC), eps(eps), A(A), B(B), C(C) {}
+
     config(std::tuple<double, double, double, double, double, double, uint, bool, double, double, double, double> tpl)
         : config(std::get<0>(tpl),
                  std::get<1>(tpl),
@@ -135,6 +136,11 @@ resultTable RK4(std::function<double(double, double)> rhs, const config& cfg);
 resultTable RK3(std::function<double(double, double)>&& rhs, const config& cfg);
 
 resultTable RK3_SOE(std::function<double(double, double, double)>&& rhs1, std::function<double(double, double, double)>&& rhs2, const config& cfg);
+
+resultTable RK_SOE(std::function<double(double, double, double)> rhs1, std::function<double(double, double, double)> rhs2, const config& cfg);
+
+inline std::vector<double> StepRK_SOE(std::function<double(double,double,double)> rhs1,std::function<double(double,double,double)> rhs2, const double& x, const double& u, const double& y, const double& step);
+
 
 /// @brief  RK4 for System Of two Equations
 resultTable RK4_SOE(std::function<double(double, double, double)> rhs1, std::function<double(double, double, double)> rhs2, const config& cfg);
