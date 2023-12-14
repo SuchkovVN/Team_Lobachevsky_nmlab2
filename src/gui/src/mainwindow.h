@@ -2,6 +2,8 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "Table.hpp"
+#include "diffschemes.hpp"
 #include "helpform.h"
 #include <QWidget>
 #include <QVector>
@@ -61,7 +63,8 @@ private:
     int func;
     int count_plot = 0;
     double du;
-    resultTable res1;
+    Table res1;
+    Uniform1DNet net;
     double A, B, C;   
     QColor col = QColor(0, 0, 255);
 

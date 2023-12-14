@@ -1,10 +1,15 @@
 #include "./ui_mainwindow.h"
+#include "diffschemes.hpp"
+#include "logger.hpp"
 #include "mainwindow.h"
 #include "nmlib.hpp"
 #include <cmath>
+#include <cstddef>
+#include <exception>
 #include <fstream>
 #include <qcustomplot.h>
 #include <qvalidator.h>
+#include <stdexcept> 
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWindow) {
     ui->setupUi(this);
@@ -33,8 +38,8 @@ void MainWindow::on_button_plot_clicked() {
     precision = this->ui->lineEdit_precision->text().toDouble();
 
     for (int i = 0; i < res1.size(); i++) {
-        x.push_back(res1.at(i).xi);
-        v.push_back(res1.at(i).vi);
+        x.push_back(res1.at(i).x);
+        v.push_back(res1.at(i).v);
     }
 
     this->ui->plot->addGraph();
@@ -62,11 +67,6 @@ void MainWindow::on_button_clear_clicked() {
 }
 
 void MainWindow::on_button_save_points_clicked() {
-    std::ofstream os("table.txt");
-
-    os << "x\tu1\tu2\tu1_2\tu2_2\tu1-u1_2\tu2-u2_2\tОЛП\tОЛП/ОЛПП\th"
-       << "C1\tC2\tu1-U1\tu2-U2\n";
-    dumpTableInFile(res1, os);
 }
 
 void MainWindow::on_button_plot_from_file_clicked() {}
@@ -91,47 +91,79 @@ void MainWindow::on_getdata_buttom_clicked() {
     B = this->ui->lineEdit_b->text().toDouble();
     C = this->ui->lineEdit_c->text().toDouble();
 
-    config cfg = { x_begin, x_end, x_start, y_start, du, h, N, LEC, precision, A, B, C };
+    net = Uniform1DNet{0.l, 1.l, 10};
+
+    res1 = Table{};
+
+    auto ca = [](const double& x, const double& y, const double& step) -> double {
+        if (x == y)
+            return 0.l;
+        if (y < x)
+            throw std::runtime_error("error while evaluating _ca");
+
+        if (y <= 0.5) {
+            return step * 1 / (1.l / (x + 1.l) - 1.l / (y + 1.l));
+        } else if (y > 0.5 && x < 0.5) {
+            return step * (1.l / (x + 1.l) - 1.l / y + 4.l / 3.l);
+        } else if (x >= 0.5) {
+            return step * (1.l / x - 1.l / y);
+        }
+    };
+
+    auto cd = [](const double& x, const double& y, const double& step) -> double {
+        if (x == y)
+            return 0.l;
+        if (y < x)
+            throw std::runtime_error("error while evaluating _ca");
+
+        if (y <= 0.5) {
+            constexpr double a = std::exp(0.5l);
+            return a / step * (std::exp(-x) - std::exp(-y));
+        } else if (y > 0.5 && x < 0.5) {
+            constexpr double a = std::exp(0.5l);
+            constexpr double b = 1.l / a;
+            constexpr double c = 2.l * std::exp(-0.5l) * std::exp(0.5l);
+            return 1.l / step * (a * std::exp(-x) + b * std::exp(y) - c);
+        } else if (x >= 0.5) {
+            constexpr double a = std::exp(-0.5l);
+            return step *  a * (std::exp(y) - std::exp(x));
+        }
+    };
+
+    auto cphi = [](const double& x, const double& y, const double& step) -> double {
+        if (x == y)
+            return 0.l;
+        if (y < x)
+            throw std::runtime_error("error while evaluating _ca");
+        
+        constexpr double pi = 3.141592653589793238;
+        constexpr double tpi = 1.l / pi;
+        if (y <= 0.5) {
+            return 1.l / step * tpi * (std::sin(pi * y) - std::sin(pi * x));
+        } else if (y > 0.5 && x < 0.5) {
+            constexpr double a = tpi - 0.5l;
+            return 1.l / step * (y - std::sin(pi * x) * tpi + a);
+        } else if (x >= 0.5) {
+            return step * (y - x);
+        } 
+    };
+
+    NMbalance method{&net, &res1, std::move(ca), std::move(cd), std::move(cphi), 0.l, 0.l};
 
     switch (func) {
     case 0:
-        // res1 = task_rk4(test_rhs, cfg);
+        method.eval();
+        for (size_t i = 0; i < 11; i++) {
+        }
         break;
     case 1:
-        // res1 = task_rk4(task1_rhs, cfg);
         break;
     case 2: {
-        static auto task2_rhs1 = [&](double x, double u, double du) {
-            return du;
-        };
-        static auto task2_ths2 = [&](double x, double u, double du) {
-            return -(B / A) * du - (C / A) * u;
-        };
-        res1 = utils::RK3_SOE(std::move(task2_rhs1), std::move(task2_ths2), cfg);
-
-        static const double bp = std::sqrt(4 * A * C - B * B) / (2 * A);
-        static const double ap = -(B / (2 * A));
-        static const double fp = -1 * ap / bp;
-        calculate_global_error(res1, [&](const double& x) -> double {
-            return 10 * std::exp(ap * x) * (std::cos(bp * x) + fp * std::sin(bp * x));
-        });
         break;
     }
     default:
         break;
     }
-
-    max_LE = find_max_LE(res1);
-    max_step = find_max_h(res1);
-    max_uvi = find_max_uvi(res1);
-    min_step = find_min_h(res1);
-    steps_num = res1.size() - 1;
-
-    this->ui->max_h_txt->setText(QString::number(max_step));
-    this->ui->min_h_txt->setText(QString::number(min_step));
-    this->ui->max_glob_txt->setText(QString::number(max_uvi));
-    this->ui->max_le_txt->setText(QString::number(max_LE));
-    this->ui->step_num_txt->setText(QString::number(steps_num));
 }
 
 //void MainWindow::on_Help_buttom_clicked(){};
@@ -171,34 +203,6 @@ void MainWindow::on_button_table_clicked() {
     ui->tableWidget->setColumnCount(14);
 
     std::cout << res1.size() << std::endl;
-
-    ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "x"
-                                                             << "u1"
-                                                             << "u2"
-                                                             << "u1_2"
-                                                             << "u2_2"
-                                                             << "u1-u1_2"
-                                                             << "u2-u2_2"
-                                                             << "ОЛП"
-                                                             << "ОЛП/ОЛПП"
-                                                             << "h"
-                                                             << "C1"
-                                                             << "C2"
-                                                             << "u1-U1"
-                                                             << "u2-U2");
-
-    for (int i = 0; i < res1.size(); i++) {
-        auto row_tuple = res1.at(i).get_tuple();
-        int j = 0;
-        apply_elemwise(
-            [&](const auto& elem) {
-                QTableWidgetItem* item = new QTableWidgetItem(QString::number(elem));
-                ui->tableWidget->setItem(i, j, item);
-                j++;
-            },
-            row_tuple,
-            std::make_index_sequence<std::tuple_size<decltype(row_tuple)>::value>{});
-    }
 }
 
 void MainWindow::on_comboBox_activated(int index) {
