@@ -85,7 +85,6 @@ void MainWindow::on_exit_button_clicked() {
 }
 
 void MainWindow::on_getdata_buttom_clicked() {
-   
     N = this->ui->n_te->text().toInt();
 
     net = Uniform1DNet{ 0.l, 1.l, N };
@@ -253,36 +252,41 @@ void MainWindow::on_button_table_clicked() {
     ui->tableWidget->clear();
 
     ui->tableWidget->setRowCount(res1.size());
-    ui->tableWidget->setColumnCount(4);
 
-    switch (func)
-    {
+    switch (func) {
     case 0:
-        ui->tableWidget->setHorizontalHeaderLabels(QStringList()  << "xi" << "ui" << "vi" << "vi - ui");
+        ui->tableWidget->setColumnCount(6);
+        ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "xi"
+                                                                 << "vi"
+                                                                 << "v2i"
+                                                                 << "|vi-v2i|"
+                                                                 << "ui"
+                                                                 << "|vi - ui|");
+        for (size_t i = 0; i < N + 1; i++) {
+            ui->tableWidget->setItem(i, 0, new QTableWidgetItem(QString::number(res1.at(i).x)));
+            ui->tableWidget->setItem(i, 1, new QTableWidgetItem(QString::number(res1.at(i).v)));
+            ui->tableWidget->setItem(i, 2, new QTableWidgetItem(QString::number(res1.at(i).v_2)));
+            ui->tableWidget->setItem(i, 3, new QTableWidgetItem(QString::number(res1.at(i).vdiff)));
+            ui->tableWidget->setItem(i, 4, new QTableWidgetItem(QString::number(res1.at(i).u)));
+            ui->tableWidget->setItem(i, 5, new QTableWidgetItem(QString::number(res1.at(i).eps)));
+        }
         break;
     case 1:
-        ui->tableWidget->setHorizontalHeaderLabels(QStringList()  << "xi" << "vi" << "v2i" << "vi(xi) - v2i(xi)");
+        ui->tableWidget->setColumnCount(4);
+        ui->tableWidget->setHorizontalHeaderLabels(QStringList() << "xi"
+                                                                 << "vi"
+                                                                 << "v2i"
+                                                                 << "|vi-v2i|");
+        for (size_t i = 0; i < N + 1; i++) {
+            ui->tableWidget->setItem(i, 0, new QTableWidgetItem(QString::number(res1.at(i).x)));
+            ui->tableWidget->setItem(i, 1, new QTableWidgetItem(QString::number(res1.at(i).v)));
+            ui->tableWidget->setItem(i, 2, new QTableWidgetItem(QString::number(res1.at(i).v_2)));
+            ui->tableWidget->setItem(i, 3, new QTableWidgetItem(QString::number(res1.at(i).vdiff)));
+        }
         break;
-
     default:
         break;
     }
-
-    for (int j = 0; j < N; j++) {
-            QTableWidgetItem* item = new QTableWidgetItem(QString::number(res1.at(j).x));
-            ui->tableWidget->setItem(j, 0, item);
-
-            QTableWidgetItem* item1 = new QTableWidgetItem(QString::number(res1.at(j).v));
-            ui->tableWidget->setItem(j, 1, item1);
-
-            QTableWidgetItem* item2 = new QTableWidgetItem(QString::number(res1.at(j).u));
-            ui->tableWidget->setItem(j, 2, item2);
-
-            QTableWidgetItem* item3 = new QTableWidgetItem(QString::number(res1.at(j).eps));
-            ui->tableWidget->setItem(j, 3, item3);
-
-    }
-
 }
 
 void MainWindow::on_comboBox_activated(int index) {
