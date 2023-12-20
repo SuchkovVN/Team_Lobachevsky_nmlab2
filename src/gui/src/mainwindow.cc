@@ -32,12 +32,7 @@ MainWindow::~MainWindow() {
 void MainWindow::on_button_plot_clicked() {
     QVector<double> x, v;
 
-    x_begin = this->ui->lineEdit_x_start->text().toDouble();
-    x_end = this->ui->lineEdit_x_end->text().toDouble();
-    h = this->ui->lineEdit_step->text().toDouble();
-    precision = this->ui->lineEdit_precision->text().toDouble();
-
-    for (int i = 0; i < res1.size(); i++) {
+    for (int i = 0; i < N; i++) {
         x.push_back(res1.at(i).x);
         v.push_back(res1.at(i).v);
     }
@@ -79,17 +74,8 @@ void MainWindow::on_exit_button_clicked() {
 }
 
 void MainWindow::on_getdata_buttom_clicked() {
-    x_begin = this->ui->lineEdit_x_start->text().toDouble();
-    x_end = this->ui->lineEdit_x_end->text().toDouble();
-    h = this->ui->lineEdit_step->text().toDouble();
-    precision = this->ui->lineEdit_precision->text().toDouble();
-    x_start = this->ui->lineEdit_start_x->text().toDouble();
-    y_start = this->ui->lineEdit_start_y->text().toDouble();
-    du = this->ui->lineEdit_last->text().toDouble();
-    N = this->ui->lineEdit_n->text().toInt();
-    A = this->ui->lineEdit_a->text().toDouble();
-    B = this->ui->lineEdit_b->text().toDouble();
-    C = this->ui->lineEdit_c->text().toDouble();
+   
+    N = this->ui->n_te->text().toInt();
 
     net = Uniform1DNet{0.l, 1.l, N};
 
@@ -117,15 +103,15 @@ void MainWindow::on_getdata_buttom_clicked() {
             throw std::runtime_error("error while evaluating _ca");
 
         if (y <= 0.5) {
-            constexpr double a = std::exp(0.5l);
+            const double a = std::exp(0.5l);
             return a / step * (std::exp(-x) - std::exp(-y));
         } else if (y > 0.5 && x < 0.5) {
-            constexpr double a = std::exp(0.5l);
-            constexpr double b = 1.l / a;
-            constexpr double c = 2.l * std::exp(-0.5l) * std::exp(0.5l);
+            const double a = std::exp(0.5l);
+            const double b = 1.l / a;
+            const double c = 2.l * std::exp(-0.5l) * std::exp(0.5l);
             return 1.l / step * (a * std::exp(-x) + b * std::exp(y) - c);
         } else if (x >= 0.5) {
-            constexpr double a = std::exp(-0.5l);
+            const double a = std::exp(-0.5l);
             return step *  a * (std::exp(y) - std::exp(x));
         }
     };
@@ -136,12 +122,12 @@ void MainWindow::on_getdata_buttom_clicked() {
         if (y < x)
             throw std::runtime_error("error while evaluating _ca");
         
-        constexpr double pi = 3.141592653589793238;
-        constexpr double tpi = 1.l / pi;
+        const double pi = 3.141592653589793238;
+        const double tpi = 1.l / pi;
         if (y <= 0.5) {
             return 1.l / step * tpi * (std::sin(pi * y) - std::sin(pi * x));
         } else if (y > 0.5 && x < 0.5) {
-            constexpr double a = tpi - 0.5l;
+            const double a = tpi - 0.5l;
             return 1.l / step * (y - std::sin(pi * x) * tpi + a);
         } else if (x >= 0.5) {
             return step * (y - x);
@@ -196,9 +182,36 @@ void MainWindow::on_button_table_clicked() {
     ui->tableWidget->clear();
 
     ui->tableWidget->setRowCount(res1.size());
-    ui->tableWidget->setColumnCount(14);
+    ui->tableWidget->setColumnCount(4);
 
-    std::cout << res1.size() << std::endl;
+    switch (func)
+    {
+    case 0:
+        ui->tableWidget->setHorizontalHeaderLabels(QStringList()  << "xi" << "ui" << "vi" << "vi - ui");
+        break;
+    case 1:
+        ui->tableWidget->setHorizontalHeaderLabels(QStringList()  << "xi" << "vi" << "v2i" << "vi(xi) - v2i(xi)");
+        break;
+
+    default:
+        break;
+    }
+
+    for (int j = 0; j < N; j++) {
+            QTableWidgetItem* item = new QTableWidgetItem(QString::number(res1.at(j).x));
+            ui->tableWidget->setItem(j, 0, item);
+
+            QTableWidgetItem* item1 = new QTableWidgetItem(QString::number(res1.at(j).v));
+            ui->tableWidget->setItem(j, 1, item1);
+
+            QTableWidgetItem* item2 = new QTableWidgetItem(QString::number(res1.at(j).u));
+            ui->tableWidget->setItem(j, 2, item2);
+
+            QTableWidgetItem* item3 = new QTableWidgetItem(QString::number(res1.at(j).eps));
+            ui->tableWidget->setItem(j, 3, item3);
+
+    }
+
 }
 
 void MainWindow::on_comboBox_activated(int index) {
