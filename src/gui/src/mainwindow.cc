@@ -91,9 +91,9 @@ void MainWindow::on_getdata_buttom_clicked() {
     B = this->ui->lineEdit_b->text().toDouble();
     C = this->ui->lineEdit_c->text().toDouble();
 
-    net = Uniform1DNet{0.l, 1.l, 10};
+    net = Uniform1DNet{0.l, 1.l, N};
 
-    res1 = Table{};
+    res1 = Table{N};
 
     auto ca = [](const double& x, const double& y, const double& step) -> double {
         if (x == y)
@@ -153,14 +153,10 @@ void MainWindow::on_getdata_buttom_clicked() {
     switch (func) {
     case 0:
         method.eval();
-        for (size_t i = 0; i < 11; i++) {
-        }
         break;
     case 1:
+        
         break;
-    case 2: {
-        break;
-    }
     default:
         break;
     }

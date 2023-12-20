@@ -57,7 +57,7 @@ void NMbalance::eval() {
     TridiagonalAlg(matrix, vars, rhs, n + 1);
 
     for (size_t i = 0; i < vars.size(); i++) {
-    _result->append({(x + step * i), vars[i]});
+    _result->append({(x + step * i), vars[i],2,std::abs(vars[i]-2)});
     }
 
     // actually we need to put solution in some resultTable like object, but for some time it will be more... reasonable

@@ -4,7 +4,9 @@
 #include <vector>
 struct TableRow {
     double x;
-    double v;  
+    double v;
+    double u; // real solv
+    double eps; // epsilon in point ||ui-vi||
 };
 
 class Table {
@@ -13,6 +15,12 @@ using rows = std::vector<TableRow>;
 public:
     Table() = default;
     virtual ~Table() = default;
+
+    Table(const size_t& n) {
+        rows temp;
+        temp.reserve(n);
+        _data = temp;
+    }
 
     Table(rows&& data) : _data(data) {}
 
