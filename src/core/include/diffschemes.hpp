@@ -42,6 +42,7 @@ class NMbalance {
     func _cd;
     func _cphi;
     double _mu1, _mu2;
+    std::function<double(double)> _sol;
 
     std::vector<std::vector<double>> matrix; /* matrix of linear equations system, with C-style layout
                                 (probably tridiagonal so it can looks like this (v11, v12, v13, v21, v22 .. etc)) */
@@ -53,8 +54,8 @@ public:
     NMbalance() = default;
     ~NMbalance();
 
-    NMbalance(Uniform1DNet* net, Table* tbl, func&& ca, func&& cd, func&& cphi, const double& mu1, const double& mu2)
-        : _net(net), _result(tbl), _ca(ca), _cd(cd), _cphi(cphi), _mu1(mu1), _mu2(mu2) {
+    NMbalance(Uniform1DNet* net, Table* tbl, func&& ca, func&& cd, func&& cphi, const double& mu1, const double& mu2, std::function<double(double)>&& sol)
+        : _net(net), _result(tbl), _ca(ca), _cd(cd), _cphi(cphi), _mu1(mu1), _mu2(mu2), _sol(sol) {
         rhs.resize(net->n + 1);
         matrix.resize((net->n + 1));
         for (auto& v : matrix) {

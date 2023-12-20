@@ -7,6 +7,8 @@ struct TableRow {
     double v;
     double u; // real solv
     double eps; // epsilon in point ||ui-vi||
+    double v_2; // v value calculated w/ half-step
+    double vdiff; // ||v - v_2||
 };
 
 class Table {
