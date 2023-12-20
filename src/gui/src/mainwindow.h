@@ -74,6 +74,7 @@ private:
     double max_uvi = 0.l;
     size_t steps_num = 0;
 
+
     HelpForm form;
 };
 #endif // MAINWINDOW_H
