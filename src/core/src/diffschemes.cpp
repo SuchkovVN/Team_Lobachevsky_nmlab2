@@ -61,7 +61,7 @@ void NMbalance::eval() {
     for (size_t i = 0; i < vars.size(); i++) {
         double point_x = x + step * i;
         double sol_value = _sol(point_x);
-        _result->append({ point_x, vars[i], sol_value, std::abs(vars[i] - sol_value), 0.l });
+        _result->append({ point_x, vars[i], 0.l, sol_value, std::abs(vars[i] - sol_value), 0.l });
     }
 
     // half-step calc
